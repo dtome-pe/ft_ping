@@ -29,6 +29,7 @@ void    init(t_data *data, char *dst)
         perror("Socket creation failed");
         exit(EXIT_FAILURE);
     }
+    data->socket = s;
 
     /*-----------------------------------*/
 
@@ -77,7 +78,7 @@ void    init(t_data *data, char *dst)
     /*STORE SRC ADDR INTO IP_HEADER STRUCTURE*/
 
     struct sockaddr_in *sin = (struct sockaddr_in *)&ifr.ifr_addr;
-    data->ip_header.src_ip = ntohl(sin->sin_addr.s_addr);
+    data->ip_header.src_ip = sin->sin_addr.s_addr;
 
     /*-----------------------------------------------*/
 
@@ -103,12 +104,23 @@ void    init(t_data *data, char *dst)
     for (res = result; res != NULL; res = res->ai_next) {   
         if (res->ai_family == AF_INET) 
         {
-            struct sockaddr_in *addr = (struct sockaddr_in *)res->ai_addr;
-            //memcpy(addr_buffer, &addr->sin_addr, sizeof(addr->sin_addr));
-            data->ip_header.dest_ip = ntohl(addr->sin_addr.s_addr);
+            /*ALLOCATING AND COPYING SOCKADDR_IN IN DATA STRUCTURE*/
+            struct sockaddr_in *addr = (struct sockaddr_in *)res->ai_addr;           
 
-            // Print for verification
-            //print_addr(addr_buffer, *addr_len);
+            addr->sin_family = AF_INET;
+            addr->sin_port = 0;
+            data->dest_addr = (struct sockaddr_in *)malloc(sizeof(struct sockaddr_in));  // Ensure you allocate memory
+            if (!data->dest_addr) {
+                perror("Memory allocation for destination address failed");
+                exit(EXIT_FAILURE);
+            }
+            memcpy(data->dest_addr, addr, sizeof(struct sockaddr_in));
+
+            /*COPYING DEST IP FOR PACKET*/
+
+            data->ip_header.dest_ip = addr->sin_addr.s_addr;
+            
+            break ;
         }
     }
     freeaddrinfo(result);

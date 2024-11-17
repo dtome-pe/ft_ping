@@ -19,8 +19,12 @@ int main(int argc, char **argv)
     t_data  data;
 
     init(&data, argv[1]);
-    print_addr(data.ip_header.src_ip);
-    print_addr(data.ip_header.dest_ip);
+    //print_addr(data.ip_header.src_ip);
+    //print_addr(data.ip_header.dest_ip);
+    generate_packet(&data);
+    //print_headers(&data);
+    allocate_and_send(&data);
+
     
     return 0;
 }
