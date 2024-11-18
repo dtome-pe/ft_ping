@@ -4,33 +4,36 @@
 # define EXIT_FAILURE 1
 # define INET "nordlynx"
 
+# include <sys/time.h>
+
 # include <stdint.h>
+
 
 typedef struct s_data
 {   
+    struct timeval timeval;
+
     struct ip_header
     {
-        unsigned char   version_ihl;    // Version (4 bits) + IHL (4 bits)
-        unsigned char   tos;            // Type of Service (8 bits)
-        unsigned short  total_length;   // Total length of the packet (16 bits)
-        unsigned short  id;             // Identification (16 bits)
-        unsigned short  flags_frag;       // Fragment offset (16 bits)
-        unsigned char   ttl;            // Time To Live (8 bits)
-        unsigned char   protocol;       // Protocol (8 bits)
-        unsigned short  checksum;       // Header checksum (16 bits)
-        unsigned int    src_ip;         // Source IP address (32 bits)
-        unsigned int    dest_ip;        // Destination IP address (32 bits)
+        uint8_t         version_ihl;    // Version (4 bits) + IHL (4 bits)
+        uint8_t         tos;            // Type of Service (8 bits)
+        uint16_t        total_length;   // Total length of the packet (16 bits)
+        uint16_t        id;             // Identification (16 bits)
+        uint16_t        flags_frag;       // Fragment offset (16 bits)
+        uint8_t         ttl;            // Time To Live (8 bits)
+        uint8_t         protocol;       // Protocol (8 bits)
+        uint16_t        checksum;       // Header checksum (16 bits)
+        uint32_t        src_ip;         // Source IP address (32 bits)
+        uint32_t        dest_ip;        // Destination IP address (32 bits)
     } ip_header;
 
     struct icmp_header
     {
-        unsigned char   type;        // Type (1 byte)
-        unsigned char   code;        // Code (1 byte)
-        unsigned short  checksum;   // Checksum (2 bytes)
-        unsigned short  id;         // Identifier (2 bytes)
-        unsigned short  seq_num;    // Sequence Number (2 bytes)
-        unsigned char   *data;       // Optional Data (variable length)
-
+        uint8_t         type;        // Type (1 byte)
+        uint8_t         code;        // Code (1 byte)
+        uint16_t        checksum;   // Checksum (2 bytes)
+        uint16_t        id;         // Identifier (2 bytes)
+        uint16_t        seq_num;    // Sequence Number (2 bytes)
     } icmp_header;
 
     unsigned char       *packet;

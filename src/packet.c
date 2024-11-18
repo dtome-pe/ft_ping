@@ -66,7 +66,7 @@ void    generate_packet(t_data *data)
 
     /*IP HEADER CHECKSUM*/
 
-    unsigned int sum = 0;
+    uint32_t    sum = 0;
 
     // Sum all 16-bit words of the IP header (we break it into 16-bit words)
     sum += (data->ip_header.version_ihl << 8) | data->ip_header.tos;   // First 16-bit word
@@ -112,14 +112,13 @@ void    generate_packet(t_data *data)
 
     /*SET IDENTIFIER*/
 
-    id = rand() % 65536; // Random value between 0 and 65535
-    data->icmp_header.id = htons(id);
+    data->icmp_header.id = htons(0x1234);
 
     /*-----------------------------------*/
 
     /*SET SEQUENCE NUMBER*/
 
-    data->icmp_header.seq_num = 0x0001;
+    data->icmp_header.seq_num = htons(0x0001);
 
     /*-----------------------------------*/
 
@@ -128,12 +127,25 @@ void    generate_packet(t_data *data)
     sum = 0;
 
     sum += (data->icmp_header.type << 8) | data->icmp_header.code; // Type and Code (combined as 16 bits)
-    sum += data->icmp_header.id;                                  // Identifier (16 bits)
-    sum += data->icmp_header.seq_num;                             // seq number (16 bits)
+    sum += data->icmp_header.checksum;                            //checksum (16bits)    
+    sum += ntohs(data->icmp_header.id);                                  // Identifier (16 bits)    
+    sum += ntohs(data->icmp_header.seq_num);                        // seq number (16 bits)
 
-    // Take one's complement (negate the result)
-    data->icmp_header.checksum = ~sum;
+    data->icmp_header.checksum = htons(~sum);  // Mask to 16 bits
+
+    //printf("Calculated checksum: 0x%04x\n", data->icmp_header.checksum);
 
     /*---------------------*/
+
+
+
+    //     /*SET TIMESTAMP*/
+
+    // data->timeval = (struct timeval){ 0 };
+    // gettimeofday(&data->timeval, NULL);
+    // printf("%ld.%06ld\n", data->timeval.tv_sec, data->timeval.tv_usec);
+
+
+    // /*----------------------------------*/
 }
 
