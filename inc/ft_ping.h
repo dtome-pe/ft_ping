@@ -36,15 +36,16 @@ typedef struct s_data
         uint16_t        seq_num;    // Sequence Number (2 bytes)
     } icmp_header;
 
-    unsigned char       *packet;
-    int                 socket;
+    unsigned char           *packet;
+    size_t                  packet_size;
+    int                     ping_fd;
     struct sockaddr_in     *dest_addr;
 
 } t_data;
 
 void    init(t_data *data, char *dst);
 void    generate_packet(t_data *data);
-void    allocate_and_send(t_data *data);
+void    run(t_data *data);
 
 void    error(char *str);
 void    print_addr(uint32_t ip);

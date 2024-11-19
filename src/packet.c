@@ -137,15 +137,23 @@ void    generate_packet(t_data *data)
 
     /*---------------------*/
 
+    /*ALLOCATE MEMORY FOR PACKET*/
+    data->packet_size = sizeof(data->ip_header) + sizeof(data->icmp_header);
 
+    printf("packet size: %ld\n", data->packet_size);
+    data->packet = malloc(data->packet_size);
+    if (!data->packet) {
+        perror("Packet allocation failed");
+        exit(EXIT_FAILURE);
+    }
+    memset(data->packet, 0, data->packet_size); // Initialize all bytes to zero
 
-    //     /*SET TIMESTAMP*/
+    /*--------------------------*/
 
-    // data->timeval = (struct timeval){ 0 };
-    // gettimeofday(&data->timeval, NULL);
-    // printf("%ld.%06ld\n", data->timeval.tv_sec, data->timeval.tv_usec);
+    /*COPY BOTH HEADERS INTO PACKET*/
+    memcpy(data->packet, &data->ip_header, sizeof(data->ip_header));
+    memcpy(data->packet + sizeof(data->ip_header), &data->icmp_header, sizeof(data->icmp_header));
 
-
-    // /*----------------------------------*/
+    /*---------------------------*/
 }
 

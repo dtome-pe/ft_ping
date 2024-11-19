@@ -29,7 +29,7 @@ void    init(t_data *data, char *dst)
         perror("Socket creation failed");
         exit(EXIT_FAILURE);
     }
-    data->socket = s;
+    data->ping_fd = s;
 
     /*-----------------------------------*/
 
@@ -37,7 +37,7 @@ void    init(t_data *data, char *dst)
 
     int optval = 1;
     
-    if (setsockopt(s, IPPROTO_IP, IP_HDRINCL, &optval, sizeof(optval)) < 0)
+    if (setsockopt(data->ping_fd, IPPROTO_IP, IP_HDRINCL, &optval, sizeof(optval)) < 0)
     {
         perror("setsockopt failed");
         exit(EXIT_FAILURE);
@@ -53,7 +53,7 @@ void    init(t_data *data, char *dst)
     ifr.ifr_addr.sa_family = AF_INET;
     //Copy the interface name in the ifreq structure
     strncpy(ifr.ifr_name , array , IFNAMSIZ - 1);
-    if (ioctl(s, SIOCGIFADDR, &ifr) < 0)
+    if (ioctl(data->ping_fd, SIOCGIFADDR, &ifr) < 0)
     {
         perror("ioctl failed to get IP address");
         exit(EXIT_FAILURE);
@@ -67,7 +67,7 @@ void    init(t_data *data, char *dst)
 
     struct sockaddr_in *addr = (struct sockaddr_in *)&ifr.ifr_addr;
 
-    if (bind(s, (const struct sockaddr*)addr, sizeof(struct sockaddr_in)) == -1)
+    if (bind(data->ping_fd, (const struct sockaddr*)addr, sizeof(struct sockaddr_in)) == -1)
     {
         perror("bind failed");
         exit(EXIT_FAILURE);
