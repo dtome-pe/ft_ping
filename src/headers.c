@@ -93,7 +93,7 @@ void    generate_headers(t_data *data)
 
     /*SET SEQUENCE NUMBER*/
 
-    data->icmp_hdr.un.echo.sequence = htons(0x0001);
+    data->icmp_hdr.un.echo.sequence = htons(data->stats.seq);
 
     /*-----------------------------------*/
 

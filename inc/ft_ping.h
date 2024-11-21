@@ -12,26 +12,42 @@
 
 
 typedef struct s_data
-{   
-    struct timeval timeval;
+{ 
     unsigned char           *packet;
     size_t                  packet_size;
+    size_t                  payload_size;
     int                     ping_fd;
     char                    ping_buffer[10000];
+
+    char                    *hostname;
+    char                    hostname_ip_str[INET_ADDRSTRLEN];
+    
     size_t                  ping_interval;
     struct sockaddr_in      *from_addr;
     struct sockaddr_in      *dest_addr;
     struct icmphdr          *last_reply;
 
     struct iphdr            ip_hdr;
-    struct icmphdr          icmp_hdr;
-    char                    *payload;
-    
+    struct icmphdr          icmp_hdr;  
+
+    struct timeval          last_ping;
+    struct timeval          interval;
+
+    struct stats
+    {   
+        int         packets_sent;
+        int         packets_received;
+        uint16_t    seq;
+        double      min_rtt;
+        double      max_rtt;
+        double      total_rtt;
+    } stats;
 } t_data;
 
 void            init(t_data *data, char *dst);
 void            generate_headers(t_data *data);
 void            run(t_data *data);
+void            end(t_data *data);
 
 void            error(char *str);
 void            print_addr(uint32_t ip);

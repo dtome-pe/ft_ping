@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -10,17 +12,11 @@
 #include <unistd.h>
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
+#include <sys/time.h>
 
 #include "../inc/ft_ping.h"
 
 int volatile stop = 0;
-
-void
-sig_int (int signal)
-{
-    stop = 1;
-    exit(1);
-}
 
 // Calculate the checksum for the ICMP packet
 unsigned short checksum(void *b, int len)
@@ -46,11 +42,12 @@ void    echo(t_data *data)
     
     struct timeval tv;
     memset (&tv, 0, sizeof(tv));
-    printf("size of timeval: %zu\n", sizeof(tv));
     gettimeofday(&tv, NULL);
 
     // Calculate total packet size (ICMP header + payload)
     size_t packet_size = sizeof(data->ip_hdr) + sizeof(data->icmp_hdr) + sizeof(tv) + 40;
+    data->packet_size = packet_size;
+    data->payload_size = sizeof(tv) + 40;
 
     char *packet = malloc(packet_size);
     if (!packet)
@@ -69,11 +66,9 @@ void    echo(t_data *data)
 
     data->icmp_hdr.checksum = calculate_checksum(packet + sizeof(data->ip_hdr), sizeof(data->icmp_hdr) + sizeof(tv) + 40);
     
-    /* Now that the checksum is calculated, copy the updated ICMP header into the packet */
     memcpy(packet + sizeof(data->ip_hdr), &data->icmp_hdr, sizeof(data->icmp_hdr));
 
     data->ip_hdr.tot_len = sizeof(data->ip_hdr) + sizeof(data->icmp_hdr) + sizeof(tv) + 40;
-    printf("iphdr tot len: %d\n", data->ip_hdr.tot_len);
 
     memcpy(packet, &data->ip_hdr, sizeof(data->ip_hdr));
 
@@ -84,26 +79,59 @@ void    echo(t_data *data)
         exit(EXIT_FAILURE);
     }
 
-    printf("Packet sent successfully\n");
-    
-    free(data->packet);
+    if (data->stats.packets_sent == 0)
+        printf("PING %s (%s) (%zu)%zu bytes of data.\n", data->hostname, data->hostname_ip_str, data->payload_size, data->packet_size);
+
+    data->stats.packets_sent++;
+    data->stats.seq++;    
+    free(packet);
 }
 
-int     receive(t_data *data)
+int     receive(t_data *data, struct timeval *last)
 {
     int                 n;
     socklen_t len = sizeof(*(data->dest_addr));
+    struct timeval      reply, rtt;
+
     n = recvfrom(data->ping_fd, data->ping_buffer, 10000, 0, (struct sockaddr *)data->dest_addr, &len);
     if (n < 0)
     {
         perror("recv failed");
         exit(EXIT_FAILURE);
     }
-    if (n > 0) 
+
+    gettimeofday(&reply, NULL);
+
+    data->stats.packets_received++;
+
+    // Parse the IP header from the received packet
+    struct iphdr *ip_header = (struct iphdr *)data->ping_buffer;
+    struct icmphdr *icmp_reply = (struct icmphdr *)(data->ping_buffer + (ip_header->ihl * 4));
+    if (icmp_reply->type != ICMP_ECHOREPLY)
     {
-        printf("ICMP packet received from %s\n", inet_ntoa(data->dest_addr->sin_addr));
-        data->last_reply = (struct icmphdr *) (data->ping_buffer + sizeof(struct iphdr));
+        printf("Received non-echo reply ICMP packet\n");
+        return -1;
     }
+    // Extract the sender's IP address
+    inet_ntop(AF_INET, &data->dest_addr->sin_addr, data->hostname_ip_str, sizeof(data->hostname_ip_str));
+
+    // Calculate RTT (round-trip time) in milliseconds
+    timersub(&reply, last, &rtt);
+    double rtt_ms = rtt.tv_sec * 1000.0 + rtt.tv_usec / 1000.0;
+
+    // Display information
+    printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.2f ms\n",
+    n - (ip_header->ihl * 4),  // Data size (without IP header)
+    data->hostname_ip_str,
+    ntohs(icmp_reply->un.echo.sequence),
+    ip_header->ttl,
+    rtt_ms);
+
+}
+
+void sig_int (int signal)
+{
+    stop = 1;
 }
 
 void    run(t_data *data)
@@ -121,8 +149,8 @@ void    run(t_data *data)
     memset(&now, 0, sizeof(now));
 
     signal (SIGINT, sig_int);
-    gettimeofday(&last, NULL);
     echo(data);
+    gettimeofday(&last, NULL);
 
     while (!stop)
     {
@@ -130,6 +158,22 @@ void    run(t_data *data)
         FD_SET(data->ping_fd, &fdset);
         gettimeofday (&now, NULL);
 
+        resp_time.tv_sec = last.tv_sec + data->interval.tv_sec - now.tv_sec;
+        resp_time.tv_usec = last.tv_usec + data->interval.tv_usec - now.tv_usec;
+
+        while (resp_time.tv_usec < 0)
+        {
+            resp_time.tv_usec += 1000000;
+            resp_time.tv_sec--;
+        }
+        while (resp_time.tv_usec >= 1000000)
+        {
+            resp_time.tv_usec -= 1000000;
+            resp_time.tv_sec++;
+        }
+
+        if (resp_time.tv_sec < 0)
+            resp_time.tv_sec = resp_time.tv_usec = 0;
 
         n = select(fdmax, &fdset, NULL, NULL, &resp_time);
         if (n < 0)
@@ -141,10 +185,14 @@ void    run(t_data *data)
             }
             continue;
         }
+        else if (n == 1)
+        {
+            receive(data, &last);
+        }
         else
         {
-            receive(data);
-            
+            echo(data);
+            gettimeofday(&last, NULL);
         }
     }
 }

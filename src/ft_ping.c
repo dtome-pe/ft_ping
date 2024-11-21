@@ -20,6 +20,7 @@ int main(int argc, char **argv)
 
     init(&data, argv[1]);
     run(&data);
-    
+    end(&data);
+
     return 0;
 }

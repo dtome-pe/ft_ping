@@ -21,6 +21,12 @@ void    get_own_IP()
 
 void    init(t_data *data, char *dst)
 {
+    /*STORE HOSTNAME IN STRUCT*/
+
+    data->hostname = dst;
+
+    /*------------------------*/
+
     /*RAW SOCKET CREATION*/
     int s;
 
@@ -75,7 +81,7 @@ void    init(t_data *data, char *dst)
 
     /*----------------------------------------------*/
 
-    /*STORE SRC ADDR INTO IP_HEADER STRUCTURE*/
+    /*STORE SRC ADDR INTO IP_HEADER STRUCTURE AND ITS STRING IP REPRESENTATION*/
 
     struct sockaddr_in *sin = (struct sockaddr_in *)&ifr.ifr_addr;
     data->ip_hdr.saddr = sin->sin_addr.s_addr;
@@ -125,5 +131,27 @@ void    init(t_data *data, char *dst)
     }
     freeaddrinfo(result);
 
+    /*COPY ITS IP STRING REPRESENTATION*/
+
+    inet_ntop(AF_INET, &data->dest_addr->sin_addr, data->hostname_ip_str, sizeof(data->hostname_ip_str));
+
     /*------------------------*/
+
+    /*SET PING INTERVAL*/
+
+    data->interval.tv_sec = 1;
+    data->interval.tv_usec = 0;
+
+    /*---------------------------*/
+
+    /*INITIALIZE STATS VALUES*/
+
+    data->stats.seq = 1;
+    data->stats.packets_sent = 0;
+    data->stats.packets_received = 0;
+    data->stats.min_rtt = 0;
+    data->stats.max_rtt = 0;
+    data->stats.total_rtt = 0;
+
+    /*-------------------------*/
 }
