@@ -39,8 +39,9 @@ typedef struct s_data
     unsigned char           *packet;
     size_t                  packet_size;
     int                     ping_fd;
-    struct sockaddr_in     *dest_addr;
-
+    char                    ping_buffer[10000];
+    struct sockaddr_in      *from_addr;
+    struct sockaddr_in      *dest_addr;
 } t_data;
 
 void    init(t_data *data, char *dst);

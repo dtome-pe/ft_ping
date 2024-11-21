@@ -65,9 +65,9 @@ void    init(t_data *data, char *dst)
 
     /*BIND SOCKET TO ADDRESS*/
 
-    struct sockaddr_in *addr = (struct sockaddr_in *)&ifr.ifr_addr;
+    data->from_addr = (struct sockaddr_in *)&ifr.ifr_addr;
 
-    if (bind(data->ping_fd, (const struct sockaddr*)addr, sizeof(struct sockaddr_in)) == -1)
+    if (bind(data->ping_fd, (const struct sockaddr*)data->from_addr, sizeof(struct sockaddr_in)) == -1)
     {
         perror("bind failed");
         exit(EXIT_FAILURE);
