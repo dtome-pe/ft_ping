@@ -78,7 +78,7 @@ void    init(t_data *data, char *dst)
     /*STORE SRC ADDR INTO IP_HEADER STRUCTURE*/
 
     struct sockaddr_in *sin = (struct sockaddr_in *)&ifr.ifr_addr;
-    data->ip_header.src_ip = sin->sin_addr.s_addr;
+    data->ip_hdr.saddr = sin->sin_addr.s_addr;
 
     /*-----------------------------------------------*/
 
@@ -118,7 +118,7 @@ void    init(t_data *data, char *dst)
 
             /*COPYING DEST IP FOR PACKET*/
 
-            data->ip_header.dest_ip = addr->sin_addr.s_addr;
+            data->ip_hdr.daddr = addr->sin_addr.s_addr;
             
             break ;
         }

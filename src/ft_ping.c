@@ -19,7 +19,6 @@ int main(int argc, char **argv)
     t_data  data;
 
     init(&data, argv[1]);
-    generate_packet(&data);
     run(&data);
     
     return 0;

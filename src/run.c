@@ -22,9 +22,62 @@ sig_int (int signal)
     exit(1);
 }
 
-void    echo(t_data *data)
+// Calculate the checksum for the ICMP packet
+unsigned short checksum(void *b, int len)
 {
-    if (sendto(data->ping_fd, data->packet, data->packet_size, 0, (const struct sockaddr *)data->dest_addr, sizeof(struct sockaddr_in)) < 0) 
+    unsigned short *buf = b;
+    unsigned int sum = 0;
+    unsigned short result;
+
+    for (sum = 0; len > 1; len -= 2)
+        sum += *buf++;
+    if (len == 1)
+        sum += *(unsigned char *)buf;
+
+    sum = (sum >> 16) + (sum & 0xFFFF);
+    sum += (sum >> 16);
+    result = ~sum;
+    return result;
+}
+
+void    echo(t_data *data)
+{   
+    generate_headers(data);
+    
+    struct timeval tv;
+    memset (&tv, 0, sizeof(tv));
+    printf("size of timeval: %zu\n", sizeof(tv));
+    gettimeofday(&tv, NULL);
+
+    // Calculate total packet size (ICMP header + payload)
+    size_t packet_size = sizeof(data->ip_hdr) + sizeof(data->icmp_hdr) + sizeof(tv) + 40;
+
+    char *packet = malloc(packet_size);
+    if (!packet)
+    {
+        perror("Failed to allocate memory for packet");
+        exit(EXIT_FAILURE);
+    }
+
+    /* Copy IP header, ICMP header, and payload (struct timeval) into the packet */
+    memcpy(packet, &data->ip_hdr, sizeof(data->ip_hdr));
+    memcpy(packet + sizeof(data->ip_hdr), &data->icmp_hdr, sizeof(data->icmp_hdr));
+    memcpy(packet + sizeof(data->ip_hdr) + sizeof(data->icmp_hdr), &tv, sizeof(tv));
+    memset(packet + sizeof(data->ip_hdr) + sizeof(data->icmp_hdr) + sizeof(tv), 0, 40);
+
+    /*-------------------------------------*/
+
+    data->icmp_hdr.checksum = calculate_checksum(packet + sizeof(data->ip_hdr), sizeof(data->icmp_hdr) + sizeof(tv) + 40);
+    
+    /* Now that the checksum is calculated, copy the updated ICMP header into the packet */
+    memcpy(packet + sizeof(data->ip_hdr), &data->icmp_hdr, sizeof(data->icmp_hdr));
+
+    data->ip_hdr.tot_len = sizeof(data->ip_hdr) + sizeof(data->icmp_hdr) + sizeof(tv) + 40;
+    printf("iphdr tot len: %d\n", data->ip_hdr.tot_len);
+
+    memcpy(packet, &data->ip_hdr, sizeof(data->ip_hdr));
+
+    if (sendto(data->ping_fd, packet, packet_size, 0, (const struct sockaddr *)data->dest_addr, sizeof(struct sockaddr_in)) < 0) 
     {
         perror("Packet send failed");
         free(data->packet);
@@ -49,24 +102,7 @@ int     receive(t_data *data)
     if (n > 0) 
     {
         printf("ICMP packet received from %s\n", inet_ntoa(data->dest_addr->sin_addr));
-        struct icmphdr *icmp = (struct icmphdr *) (data->ping_buffer + sizeof(struct iphdr));
-        switch (icmp->type) 
-        {
-            case ICMP_ECHOREPLY:      printf("Type: ICMP_ECHOREPLY\n"); break;
-            case ICMP_DEST_UNREACH:   printf("Type: ICMP_DEST_UNREACH\n"); break;
-            case ICMP_SOURCE_QUENCH:  printf("Type: ICMP_SOURCE_QUENCH\n"); break;
-            case ICMP_REDIRECT:       printf("Type: ICMP_REDIRECT\n"); break;
-            case ICMP_ECHO:           printf("Type: ICMP_ECHO\n"); break;
-            case ICMP_TIME_EXCEEDED:  printf("Type: ICMP_TIME_EXCEEDED\n"); break;
-            case ICMP_PARAMETERPROB:  printf("Type: ICMP_PARAMETERPROB\n"); break;
-            case ICMP_TIMESTAMP:      printf("Type: ICMP_TIMESTAMP\n"); break;
-            case ICMP_TIMESTAMPREPLY: printf("Type: ICMP_TIMESTAMPREPLY\n"); break;
-            case ICMP_INFO_REQUEST:   printf("Type: ICMP_INFO_REQUEST\n"); break;
-            case ICMP_INFO_REPLY:     printf("Type: ICMP_INFO_REPLY\n"); break;
-            case ICMP_ADDRESS:        printf("Type: ICMP_ADDRESS\n"); break;
-            case ICMP_ADDRESSREPLY:   printf("Type: ICMP_ADDRESSREPLY\n"); break;
-            default:                  printf("Type: <0x%02x>\n", icmp->type); break;
-        }
+        data->last_reply = (struct icmphdr *) (data->ping_buffer + sizeof(struct iphdr));
     }
 }
 
@@ -108,6 +144,7 @@ void    run(t_data *data)
         else
         {
             receive(data);
+            
         }
     }
 }
