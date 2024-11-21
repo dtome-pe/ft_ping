@@ -10,6 +10,10 @@
 
 # include <stdint.h>
 
+struct rtt_node {
+    double rtt_value;         // RTT value
+    struct rtt_node *next;    // Pointer to the next node
+};
 
 typedef struct s_data
 { 
@@ -35,12 +39,15 @@ typedef struct s_data
 
     struct stats
     {   
-        int         packets_sent;
-        int         packets_received;
-        uint16_t    seq;
-        double      min_rtt;
-        double      max_rtt;
-        double      total_rtt;
+        int             packets_sent;
+        int             packets_received;
+        uint16_t        seq;
+        double          min_rtt;
+        double          max_rtt;
+        double          total_rtt;
+        struct rtt_node *rtt_list_head;
+        size_t          rtt_count;
+        
     } stats;
 } t_data;
 

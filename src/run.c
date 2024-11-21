@@ -36,6 +36,21 @@ unsigned short checksum(void *b, int len)
     return result;
 }
 
+void add_rtt(struct stats *s, double rtt) {
+
+    struct rtt_node *new_node = malloc(sizeof(struct rtt_node));
+    if (!new_node) {
+        perror("Failed to allocate memory for RTT node");
+        exit(EXIT_FAILURE);
+    }
+    // Initialize the new node
+    new_node->rtt_value = rtt;
+    new_node->next = s->rtt_list_head;  // Add to the front of the list
+
+    // Update the head of the list
+    s->rtt_list_head = new_node;
+}
+
 void    echo(t_data *data)
 {   
     generate_headers(data);
@@ -118,9 +133,21 @@ int     receive(t_data *data, struct timeval *last)
     // Calculate RTT (round-trip time) in milliseconds
     timersub(&reply, last, &rtt);
     double rtt_ms = rtt.tv_sec * 1000.0 + rtt.tv_usec / 1000.0;
+    
+    /*HANDLE RTT STATS*/
+
+    data->stats.total_rtt += rtt_ms;
+    if (data->stats.min_rtt == 0 || rtt_ms < data->stats.min_rtt)
+        data->stats.min_rtt = rtt_ms;
+    if (data->stats.max_rtt == 0 || rtt_ms > data->stats.max_rtt)
+        data->stats.max_rtt = rtt_ms;
+
+    add_rtt(&data->stats, rtt_ms);
+    data->stats.rtt_count++;
+    /*------------------*/
 
     // Display information
-    printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.2f ms\n",
+    printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
     n - (ip_header->ihl * 4),  // Data size (without IP header)
     data->hostname_ip_str,
     ntohs(icmp_reply->un.echo.sequence),

@@ -152,6 +152,8 @@ void    init(t_data *data, char *dst)
     data->stats.min_rtt = 0;
     data->stats.max_rtt = 0;
     data->stats.total_rtt = 0;
+    data->stats.rtt_list_head = NULL;
+    data->stats.rtt_count = 0;
 
     /*-------------------------*/
 }

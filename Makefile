@@ -13,7 +13,7 @@ $(DIR_OBJ):
 	mkdir -p $@
 
 $(NAME): $(OBJ)
-	gcc $(FLAGS) $(OBJ) -o $(NAME)
+	gcc $(FLAGS) $(OBJ) -o $(NAME) -lm
 
 $(DIR_OBJ)%.o: $(DIR_SRC)%.c Makefile 
 	gcc $(FLAGS) $(DEPFLAGS) -c $< -o $@
