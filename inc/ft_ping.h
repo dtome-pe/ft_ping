@@ -18,6 +18,8 @@ struct rtt_node {
 
 typedef struct s_data
 { 
+	int						code;
+
     unsigned char           *packet;
     size_t                  packet_size;
     size_t                  payload_size;
@@ -55,11 +57,12 @@ typedef struct s_data
 	{
 		int				help;
 		int				verbose;
+		int				ttl;
 	} opts;
 
 } t_data;
 
-void            init(t_data *data, char *dst);
+void            init(t_data *data);
 int				parse_arg(t_data *data, int argc, char **argv);
 void            generate_headers(t_data *data);
 void            run(t_data *data);
@@ -72,5 +75,6 @@ void			print_invalid_option(char *program, int option);
 void			print_missing_host(char *program);
 void			print_usage();
 unsigned short  calculate_checksum(void *data, int length);
+void			handle_rtt(t_data *data, double rtt_ms);
 
 #endif

@@ -20,9 +20,9 @@ int main(int argc, char **argv)
 	setlocale(LC_ALL, "");
 	if (data.opts.help)
 		print_usage();
-    init(&data, argv[1]);
+    init(&data);
     run(&data);
     end(&data);
 
-    return 0;
+    return (data.code);
 }

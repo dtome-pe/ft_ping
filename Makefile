@@ -14,7 +14,6 @@ $(DIR_OBJ):
 
 $(NAME): $(OBJ)
 	gcc $(FLAGS) $(OBJ) -o $(NAME) -lm
-	sudo setcap cap_net_raw+ep ./ft_ping
 
 $(DIR_OBJ)%.o: $(DIR_SRC)%.c Makefile 
 	gcc $(FLAGS) $(DEPFLAGS) -c $< -o $@

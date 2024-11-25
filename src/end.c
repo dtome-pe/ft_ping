@@ -33,6 +33,7 @@ void end(t_data *data)
         printf("%d packets transmitted, %d received, %.2f%% packet loss\n",
                 data->stats.packets_sent, data->stats.packets_received,
                100.0 * (1 - ((double)data->stats.packets_received / data->stats.packets_sent)));
-        printf("round-trip min/avg/max/stddev = %.3f/%.3f/%.3f/%.3f ms\n",
-                data->stats.min_rtt, rtt_avg, data->stats.max_rtt, stdev);
+		if (data->stats.packets_received)
+			printf("round-trip min/avg/max/stddev = %.3f/%.3f/%.3f/%.3f ms\n",
+					data->stats.min_rtt, rtt_avg, data->stats.max_rtt, stdev);
 }

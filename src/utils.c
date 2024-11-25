@@ -114,3 +114,15 @@ void	print_missing_host(char *program)
 	fprintf (stderr, ("%s: missing host operand\n"
 			"Try 'ft_ping -?' for more information.\n"), program);
 }
+
+void	handle_rtt(t_data *data, double rtt_ms)
+{
+	data->stats.total_rtt += rtt_ms;
+    if (data->stats.min_rtt == 0 || rtt_ms < data->stats.min_rtt)
+        data->stats.min_rtt = rtt_ms;
+    if (data->stats.max_rtt == 0 || rtt_ms > data->stats.max_rtt)
+        data->stats.max_rtt = rtt_ms;
+
+    add_rtt(&data->stats, rtt_ms);
+    data->stats.rtt_count++;
+}

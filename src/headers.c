@@ -47,7 +47,7 @@ void    generate_headers(t_data *data)
 
     /*SET TIME TO LIVE*/
 
-    data->ip_hdr.ttl = 0x40; //64 - unix standard
+    data->ip_hdr.ttl = data->opts.ttl; //64 - unix standard
 
 	//data->ip_hdr.ttl = 0x00; // force error
 

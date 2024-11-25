@@ -95,7 +95,12 @@ void    echo(t_data *data)
     }
 
     if (data->stats.packets_sent == 0)
-        printf("PING %s (%s) (%zu)%zu bytes of data.\n", data->hostname, data->hostname_ip_str, data->payload_size, data->packet_size);
+	{
+		printf("PING %s (%s): %zu data bytes", data->hostname, data->hostname_ip_str, data->payload_size);
+		if (data->opts.verbose)
+			printf(", id 0x%x = %d\n", ntohs(data->icmp_hdr.un.echo.id), ntohs(data->icmp_hdr.un.echo.id));
+		printf("\n");
+	}
 
     data->stats.packets_sent++;
     data->stats.seq++;    
@@ -104,7 +109,7 @@ void    echo(t_data *data)
 
 int     receive(t_data *data, struct timeval *last)
 {
-    int                 n;
+    size_t                 n;
     socklen_t len = sizeof(*(data->dest_addr));
     struct timeval      reply, rtt;
 
@@ -117,42 +122,39 @@ int     receive(t_data *data, struct timeval *last)
 
     gettimeofday(&reply, NULL);
 
-    data->stats.packets_received++;
-
     // Parse the IP header from the received packet
     struct iphdr *ip_header = (struct iphdr *)data->ping_buffer;
     struct icmphdr *icmp_reply = (struct icmphdr *)(data->ping_buffer + (ip_header->ihl * 4));
-    if (icmp_reply->type != ICMP_ECHOREPLY)
+    if (icmp_reply->type == ICMP_TIME_EXCEEDED)
     {
-        printf("Received non-echo reply ICMP packet\n");
-        return -1;
+		char dest_ip[INET_ADDRSTRLEN];
+		data->code = 1;
+        printf("%lu bytes from %s: Time to live exceeded\n", n - sizeof(*ip_header), inet_ntop(AF_INET, &ip_header->daddr, dest_ip, INET_ADDRSTRLEN));
     }
-    // Extract the sender's IP address
-    inet_ntop(AF_INET, &data->dest_addr->sin_addr, data->hostname_ip_str, sizeof(data->hostname_ip_str));
+	else
+	{
+		data->stats.packets_received++;
+		
+		// Extract the sender's IP address
+		inet_ntop(AF_INET, &data->dest_addr->sin_addr, data->hostname_ip_str, sizeof(data->hostname_ip_str));
 
-    // Calculate RTT (round-trip time) in milliseconds
-    timersub(&reply, last, &rtt);
-    double rtt_ms = rtt.tv_sec * 1000.0 + rtt.tv_usec / 1000.0;
-    
-    /*HANDLE RTT STATS*/
+		/*CALCULATE RTT AND ADD TO LIST*/
+		timersub(&reply, last, &rtt);
+		double rtt_ms = rtt.tv_sec * 1000.0 + rtt.tv_usec / 1000.0;
+		
+		handle_rtt(data, rtt_ms);
 
-    data->stats.total_rtt += rtt_ms;
-    if (data->stats.min_rtt == 0 || rtt_ms < data->stats.min_rtt)
-        data->stats.min_rtt = rtt_ms;
-    if (data->stats.max_rtt == 0 || rtt_ms > data->stats.max_rtt)
-        data->stats.max_rtt = rtt_ms;
+		/*------------------------------*/
 
-    add_rtt(&data->stats, rtt_ms);
-    data->stats.rtt_count++;
-    /*------------------*/
+		// Display information
+		printf("%lu bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
+		n - (ip_header->ihl * 4),  // Data size (without IP header)
+		data->hostname_ip_str,
+		ntohs(icmp_reply->un.echo.sequence),
+		ip_header->ttl,
+		rtt_ms);
+	}
 
-    // Display information
-    printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
-    n - (ip_header->ihl * 4),  // Data size (without IP header)
-    data->hostname_ip_str,
-    ntohs(icmp_reply->un.echo.sequence),
-    ip_header->ttl,
-    rtt_ms);
 
 }
 
