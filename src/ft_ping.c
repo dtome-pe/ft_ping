@@ -14,13 +14,12 @@
 
 int main(int argc, char **argv)
 {
-    if (argc != 2)
-        error("Wrong number of arguments\n");
-
-    setlocale(LC_ALL, "");
-
     t_data  data;
 
+	parse_arg(&data, argc, argv);
+	setlocale(LC_ALL, "");
+	if (data.opts.help)
+		print_usage();
     init(&data, argv[1]);
     run(&data);
     end(&data);

@@ -49,6 +49,8 @@ void    generate_headers(t_data *data)
 
     data->ip_hdr.ttl = 0x40; //64 - unix standard
 
+	//data->ip_hdr.ttl = 0x00; // force error
+
     /*-------------------------------------*/
 
     /*SET PROTOCOL*/

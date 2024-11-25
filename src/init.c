@@ -14,13 +14,9 @@
 
 #include "../inc/ft_ping.h"
 
-void    get_own_IP()
-{
-
-}
-
 void    init(t_data *data, char *dst)
 {
+
     /*STORE HOSTNAME IN STRUCT*/
 
     data->hostname = dst;

@@ -87,3 +87,30 @@ unsigned short calculate_checksum(void *data, int length)
     // Return one's complement of the sum
     return (unsigned short)(~sum);
 }
+
+void	print_usage()
+{
+	printf("Usage: ping [OPTION...] HOST ...\n"
+	"Send ICMP ECHO_REQUEST packets to network hosts\n\n"
+	" Options valid for all request types:\n\n"
+	"  -v			      verbose output\n\n"
+	" Options valid for --echo requests:\n\n"
+	"  -?			      give this help list\n\n"
+	"Mandatory or optional arguments to long options are also mandatory or optional\n"
+	"for any corresponding short options.\n\n"
+	"Options marked with (root only) are available only to superuser.\n\n"
+	"Report bugs to <bug-inetutils@gnu.org>.\n");
+	exit(0);
+}
+
+void	print_invalid_option(char *program, int option)
+{
+	fprintf (stderr, ("%s: invalid option -- '%c'\n"
+			"Try 'ft_ping -?' for more information.\n"), program, option);
+}
+
+void	print_missing_host(char *program)
+{
+	fprintf (stderr, ("%s: missing host operand\n"
+			"Try 'ft_ping -?' for more information.\n"), program);
+}

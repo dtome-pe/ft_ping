@@ -2,6 +2,7 @@
 # define FT_PING_H
 
 # define EXIT_FAILURE 1
+# define EXIT_USAGE 64
 # define INET "nordlynx"
 
 # include <sys/time.h>
@@ -49,9 +50,17 @@ typedef struct s_data
         size_t          rtt_count;
         
     } stats;
+
+	struct opts
+	{
+		int				help;
+		int				verbose;
+	} opts;
+
 } t_data;
 
 void            init(t_data *data, char *dst);
+int				parse_arg(t_data *data, int argc, char **argv);
 void            generate_headers(t_data *data);
 void            run(t_data *data);
 void            end(t_data *data);
@@ -59,6 +68,9 @@ void            end(t_data *data);
 void            error(char *str);
 void            print_addr(uint32_t ip);
 void            print_binary(unsigned char *addr, size_t size);
+void			print_invalid_option(char *program, int option);
+void			print_missing_host(char *program);
+void			print_usage();
 unsigned short  calculate_checksum(void *data, int length);
 
 #endif

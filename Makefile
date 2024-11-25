@@ -1,5 +1,5 @@
 NAME = ft_ping
-SRC = $(addprefix $(DIR_SRC), ft_ping.c headers.c utils.c init.c run.c end.c)
+SRC = $(addprefix $(DIR_SRC), ft_ping.c headers.c utils.c init.c run.c end.c parse_arg.c)
 FLAGS = 
 DEPFLAGS = -MMD -MP
 DIR_OBJ = tmp/
@@ -14,6 +14,7 @@ $(DIR_OBJ):
 
 $(NAME): $(OBJ)
 	gcc $(FLAGS) $(OBJ) -o $(NAME) -lm
+	sudo setcap cap_net_raw+ep ./ft_ping
 
 $(DIR_OBJ)%.o: $(DIR_SRC)%.c Makefile 
 	gcc $(FLAGS) $(DEPFLAGS) -c $< -o $@
