@@ -57,16 +57,15 @@ int		parse_arg(t_data *data, int argc, char **argv)
 				int ttl = atoi(optarg);
 				if (ttl < 1)
 				{
-					fprintf(stderr, "./ft_ping: option value too small: %d", ttl);
+					fprintf(stderr, "./ft_ping: option value too small: %s\n", optarg);
 					exit(EXIT_FAILURE);
 				}
 				else if (ttl > 255)
 				{
-					fprintf(stderr, "./ft_ping: option value too big: %d", ttl);
+					fprintf(stderr, "./ft_ping: option value too big: %s\n", optarg);
 					exit(EXIT_FAILURE);
 				}
 				data->opts.ttl = ttl;
-				printf("time to live: %d\n", data->opts.ttl);
 			}
 			else
 			{
@@ -81,11 +80,10 @@ int		parse_arg(t_data *data, int argc, char **argv)
     {
         // Remaining argument is the host
         data->hostname = argv[optind];
-		printf("%s\n", data->hostname);
     }
     else
     {
-        fprintf(stderr, "Error: Missing host operand.\n");
+        print_missing_host(argv[0]);
         exit(EXIT_USAGE);
     }
 

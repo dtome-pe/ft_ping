@@ -76,5 +76,6 @@ void			print_missing_host(char *program);
 void			print_usage();
 unsigned short  calculate_checksum(void *data, int length);
 void			handle_rtt(t_data *data, double rtt_ms);
+void			print_headers(struct iphdr *ip_header, struct icmphdr *icmp_header);
 
 #endif

@@ -17,7 +17,7 @@
 void    init(t_data *data)
 {
 
-    /*GET AND COPY DST ADDRESS*/
+    /*RESOLVE AND COPY DST ADDRESS*/
 
     struct addrinfo     *result;
     struct addrinfo     *res;
@@ -106,7 +106,7 @@ void    init(t_data *data)
         exit(EXIT_FAILURE);
     }
     //display result
-    //printf("IP Address is %s - %s\n" , array , inet_ntoa(( (struct sockaddr_in *)&ifr.ifr_addr )->sin_addr) );
+    printf("IP Address is %s - %s\n" , array , inet_ntoa(( (struct sockaddr_in *)&ifr.ifr_addr )->sin_addr) );
 
     /*------------------------------------------*/
 

@@ -36,21 +36,6 @@ unsigned short checksum(void *b, int len)
     return result;
 }
 
-void add_rtt(struct stats *s, double rtt) {
-
-    struct rtt_node *new_node = malloc(sizeof(struct rtt_node));
-    if (!new_node) {
-        perror("Failed to allocate memory for RTT node");
-        exit(EXIT_FAILURE);
-    }
-    // Initialize the new node
-    new_node->rtt_value = rtt;
-    new_node->next = s->rtt_list_head;  // Add to the front of the list
-
-    // Update the head of the list
-    s->rtt_list_head = new_node;
-}
-
 void    echo(t_data *data)
 {   
     generate_headers(data);
@@ -124,17 +109,22 @@ int     receive(t_data *data, struct timeval *last)
 
     // Parse the IP header from the received packet
     struct iphdr *ip_header = (struct iphdr *)data->ping_buffer;
-    struct icmphdr *icmp_reply = (struct icmphdr *)(data->ping_buffer + (ip_header->ihl * 4));
-    if (icmp_reply->type == ICMP_TIME_EXCEEDED)
+
+    struct icmphdr *icmp_header = (struct icmphdr *)(data->ping_buffer + (ip_header->ihl * 4));
+    if (icmp_header->type == ICMP_TIME_EXCEEDED)
     {
 		char dest_ip[INET_ADDRSTRLEN];
 		data->code = 1;
-        printf("%lu bytes from %s: Time to live exceeded\n", n - sizeof(*ip_header), inet_ntop(AF_INET, &ip_header->daddr, dest_ip, INET_ADDRSTRLEN));
+        printf("%lu bytes from %s: Time to live exceeded\n", n - sizeof(*ip_header), inet_ntop(AF_INET, &ip_header->saddr, dest_ip, INET_ADDRSTRLEN));
+		if (data->opts.verbose)
+			print_headers(&data->ip_hdr, &data->icmp_hdr);
+		printf("\n");
+
     }
 	else
 	{
 		data->stats.packets_received++;
-		
+
 		// Extract the sender's IP address
 		inet_ntop(AF_INET, &data->dest_addr->sin_addr, data->hostname_ip_str, sizeof(data->hostname_ip_str));
 
@@ -150,7 +140,7 @@ int     receive(t_data *data, struct timeval *last)
 		printf("%lu bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
 		n - (ip_header->ihl * 4),  // Data size (without IP header)
 		data->hostname_ip_str,
-		ntohs(icmp_reply->un.echo.sequence),
+		ntohs(icmp_header->un.echo.sequence),
 		ip_header->ttl,
 		rtt_ms);
 	}

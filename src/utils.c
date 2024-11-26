@@ -115,6 +115,21 @@ void	print_missing_host(char *program)
 			"Try 'ft_ping -?' for more information.\n"), program);
 }
 
+void add_rtt(struct stats *s, double rtt) {
+
+    struct rtt_node *new_node = malloc(sizeof(struct rtt_node));
+    if (!new_node) {
+        perror("Failed to allocate memory for RTT node");
+        exit(EXIT_FAILURE);
+    }
+    // Initialize the new node
+    new_node->rtt_value = rtt;
+    new_node->next = s->rtt_list_head;  // Add to the front of the list
+
+    // Update the head of the list
+    s->rtt_list_head = new_node;
+}
+
 void	handle_rtt(t_data *data, double rtt_ms)
 {
 	data->stats.total_rtt += rtt_ms;
@@ -125,4 +140,66 @@ void	handle_rtt(t_data *data, double rtt_ms)
 
     add_rtt(&data->stats, rtt_ms);
     data->stats.rtt_count++;
+}
+
+void	print_headers(struct iphdr *ip_header, struct icmphdr *icmp_header)
+{
+	ip_header->tot_len = ntohs(ip_header->tot_len);
+
+	printf("IP Hdr Dump:\n");
+	unsigned char *header_bytes = (unsigned char *)ip_header;
+    for (int i = 0; i < sizeof(struct iphdr); i++)
+    {
+        printf("%02x", header_bytes[i]);
+        if ((i + 1) % 2 == 0) // Add a space every two bytes
+            printf(" ");
+    }
+    printf("\n");
+
+	    // Decode and print the header fields
+    printf("Vr HL TOS  Len   ID Flg  off TTL Pro  cks      Src      Dst\n");
+
+	// Version (4 bits) and IHL (4 bits)
+    printf(" %1u  %1u  ", ip_header->version, ip_header->ihl);
+
+    // Type of Service (8 bits)
+    printf("%02x ", ip_header->tos);
+
+    // Total Length (16 bits)
+    printf("%04x ", ntohs(ip_header->tot_len));
+
+    // Identification (16 bits)
+    printf("%04x ", ntohs(ip_header->id));
+
+    // Flags (3 bits) and Fragment Offset (13 bits)
+    unsigned short frag_offset = ntohs(ip_header->frag_off);
+    unsigned short flags = (frag_offset & 0xE000) >> 13; // Extract the flags
+    unsigned short offset = frag_offset & 0x1FFF;        // Extract the offset
+    printf("  %1x %04x ", flags, offset);
+
+    // Time to Live (8 bits)
+    printf(" %02x  ", ip_header->ttl);
+
+    // Protocol (8 bits)
+    printf("%02x ", ip_header->protocol);
+
+    // Header Checksum (16 bits)
+    printf("%04x ", ntohs(ip_header->check));
+
+    // Source Address (32 bits)
+    struct in_addr src_addr = {ip_header->saddr};
+    printf("%s ", inet_ntoa(src_addr));
+
+    // Destination Address (32 bits)
+    struct in_addr dest_addr = {ip_header->daddr};
+    printf(" %s\n", inet_ntoa(dest_addr));
+
+	unsigned char type = icmp_header->type;
+    unsigned char code = icmp_header->code;
+    unsigned short id = ntohs(icmp_header->un.echo.id); // Convert from network to host byte order
+    unsigned short seq = ntohs(icmp_header->un.echo.sequence); // Convert from network to host byte order
+
+    // Print ICMP details in the desired format
+    printf("ICMP: type %u, code %u, size %zu, id 0x%04x, seq 0x%04x",
+		type, code, sizeof(*icmp_header) * 8, id, seq);
 }
