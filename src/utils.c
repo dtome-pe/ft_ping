@@ -222,24 +222,24 @@ const char *get_icmp_message_type(unsigned char type)
     }
 }
 
-void    set_resp_time(struct timeval resp_time, struct timeval last, struct timeval now, t_data *data)
+void    set_resp_time(struct timeval *resp_time, struct timeval last, struct timeval now, t_data *data)
 {
-    resp_time.tv_sec = last.tv_sec + data->interval.tv_sec - now.tv_sec;
-    resp_time.tv_usec = last.tv_usec + data->interval.tv_usec - now.tv_usec;
+    resp_time->tv_sec = last.tv_sec + data->interval.tv_sec - now.tv_sec;
+    resp_time->tv_usec = last.tv_usec + data->interval.tv_usec - now.tv_usec;
 
-    while (resp_time.tv_usec < 0)
+    while (resp_time->tv_usec < 0)
     {
-        resp_time.tv_usec += 1000000;
-        resp_time.tv_sec--;
+        resp_time->tv_usec += 1000000;
+        resp_time->tv_sec--;
     }
-    while (resp_time.tv_usec >= 1000000)
+    while (resp_time->tv_usec >= 1000000)
     {
-        resp_time.tv_usec -= 1000000;
-        resp_time.tv_sec++;
+        resp_time->tv_usec -= 1000000;
+        resp_time->tv_sec++;
     }
 
-    if (resp_time.tv_sec < 0)
-        resp_time.tv_sec = resp_time.tv_usec = 0;
+    if (resp_time->tv_sec < 0)
+        resp_time->tv_sec = resp_time->tv_usec = 0;
 }
 
 int     check_timeout(struct timeval now, struct timeval start, struct timeval elapsed, t_data *data)
@@ -255,4 +255,6 @@ int     check_timeout(struct timeval now, struct timeval start, struct timeval e
     if (elapsed.tv_sec >= data->opts.w) {
         return 1;
     }
+
+    return 0;
 }

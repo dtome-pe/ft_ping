@@ -94,7 +94,7 @@ void    init(t_data *data)
 
     /*GET IP ADDRESS OF OWN COMPUTER*/
     struct ifreq ifr;
-    char array[] = INET;
+    char array[] = "nordlynx";
 
     //Type of address to retrieve - IPv4 IP address
     ifr.ifr_addr.sa_family = AF_INET;
@@ -138,7 +138,7 @@ void    init(t_data *data)
 
     /*INITIALIZE STATS VALUES*/
 
-    data->stats.seq = 1;
+    data->stats.seq = 0;
     data->stats.packets_sent = 0;
     data->stats.packets_received = 0;
     data->stats.min_rtt = 0;

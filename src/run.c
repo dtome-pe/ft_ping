@@ -113,7 +113,7 @@ int     receive(t_data *data, struct timeval *last)
     struct icmphdr *icmp_header = (struct icmphdr *)(data->ping_buffer + (ip_header->ihl * 4));
 	char dest_ip[INET_ADDRSTRLEN];
 
-	printf("%s\n", get_icmp_message_type(icmp_header->type));
+	//printf("%s\n", get_icmp_message_type(icmp_header->type));
 
     if (icmp_header->type == ICMP_TIME_EXCEEDED)
     {
@@ -195,9 +195,7 @@ void    run(t_data *data)
             if (check_timeout(now, start, elapsed, data) == 1)
                 break;
 
-        set_resp_time(resp_time, last, now, data);
-
-
+        set_resp_time(&resp_time, last, now, data);
 
         n = select(fdmax, &fdset, NULL, NULL, &resp_time);
         if (n < 0)
