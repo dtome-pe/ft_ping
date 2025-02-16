@@ -77,5 +77,6 @@ void			print_usage();
 unsigned short  calculate_checksum(void *data, int length);
 void			handle_rtt(t_data *data, double rtt_ms);
 void			print_headers(struct iphdr *ip_header, struct icmphdr *icmp_header);
+const char 		*get_icmp_message_type(unsigned char type);
 
 #endif

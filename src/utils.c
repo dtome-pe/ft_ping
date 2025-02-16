@@ -203,3 +203,25 @@ void	print_headers(struct iphdr *ip_header, struct icmphdr *icmp_header)
     printf("ICMP: type %u, code %u, size %zu, id 0x%04x, seq 0x%04x",
 		type, code, sizeof(*icmp_header) * 8, id, seq);
 }
+
+const char *get_icmp_message_type(unsigned char type) 
+{
+    switch (type) {
+        case 0:  return "Echo Reply (Ping Reply)";
+        case 3:  return "Destination Unreachable";
+        case 4:  return "Source Quench (Deprecated)";
+        case 5:  return "Redirect (Change Route)";
+        case 8:  return "Echo Request (Ping Request)";
+        case 9:  return "Router Advertisement";
+        case 10: return "Router Solicitation";
+        case 11: return "Time Exceeded";
+        case 12: return "Parameter Problem: Bad IP Header";
+        case 13: return "Timestamp Request";
+        case 14: return "Timestamp Reply";
+        case 15: return "Information Request (Deprecated)";
+        case 16: return "Information Reply (Deprecated)";
+        case 17: return "Address Mask Request";
+        case 18: return "Address Mask Reply";
+        default: return "Unknown ICMP Message Type";
+    }
+}

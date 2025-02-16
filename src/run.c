@@ -111,16 +111,27 @@ int     receive(t_data *data, struct timeval *last)
     struct iphdr *ip_header = (struct iphdr *)data->ping_buffer;
 
     struct icmphdr *icmp_header = (struct icmphdr *)(data->ping_buffer + (ip_header->ihl * 4));
+	char dest_ip[INET_ADDRSTRLEN];
+
+	printf("%s\n", get_icmp_message_type(icmp_header->type));
+
     if (icmp_header->type == ICMP_TIME_EXCEEDED)
     {
-		char dest_ip[INET_ADDRSTRLEN];
 		data->code = 1;
-        printf("%lu bytes from %s: Time to live exceeded\n", n - sizeof(*ip_header), inet_ntop(AF_INET, &ip_header->saddr, dest_ip, INET_ADDRSTRLEN));
+        printf("%lu bytes from %s: Time to live exceeded", n - sizeof(*ip_header), inet_ntop(AF_INET, &ip_header->saddr, dest_ip, INET_ADDRSTRLEN));
 		if (data->opts.verbose)
 			print_headers(&data->ip_hdr, &data->icmp_hdr);
 		printf("\n");
 
     }
+	else if (icmp_header->type == ICMP_DEST_UNREACH)
+	{
+		data->code = 1;
+		printf("%lu bytes from %s: Destination Host Unreachable\n", n - sizeof(*ip_header), inet_ntop(AF_INET, &ip_header->saddr, dest_ip, INET_ADDRSTRLEN));
+		if (data->opts.verbose)
+			print_headers(&data->ip_hdr, &data->icmp_hdr);
+		printf("\n");
+	}
 	else
 	{
 		data->stats.packets_received++;
