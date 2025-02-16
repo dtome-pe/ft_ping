@@ -92,14 +92,10 @@ void	print_usage()
 {
 	printf("Usage: ping [OPTION...] HOST ...\n"
 	"Send ICMP ECHO_REQUEST packets to network hosts\n\n"
-	" Options valid for all request types:\n\n"
-	"  -v			      verbose output\n\n"
-	" Options valid for --echo requests:\n\n"
-	"  -?			      give this help list\n\n"
-	"Mandatory or optional arguments to long options are also mandatory or optional\n"
-	"for any corresponding short options.\n\n"
-	"Options marked with (root only) are available only to superuser.\n\n"
-	"Report bugs to <bug-inetutils@gnu.org>.\n");
+    "--ttl=N        specify N as time-to-live\n"
+    "  -w           stop after N seconds\n"
+	"  -v           verbose output\n"
+	"  -?           give this help list\n");
 	exit(0);
 }
 
@@ -223,5 +219,40 @@ const char *get_icmp_message_type(unsigned char type)
         case 17: return "Address Mask Request";
         case 18: return "Address Mask Reply";
         default: return "Unknown ICMP Message Type";
+    }
+}
+
+void    set_resp_time(struct timeval resp_time, struct timeval last, struct timeval now, t_data *data)
+{
+    resp_time.tv_sec = last.tv_sec + data->interval.tv_sec - now.tv_sec;
+    resp_time.tv_usec = last.tv_usec + data->interval.tv_usec - now.tv_usec;
+
+    while (resp_time.tv_usec < 0)
+    {
+        resp_time.tv_usec += 1000000;
+        resp_time.tv_sec--;
+    }
+    while (resp_time.tv_usec >= 1000000)
+    {
+        resp_time.tv_usec -= 1000000;
+        resp_time.tv_sec++;
+    }
+
+    if (resp_time.tv_sec < 0)
+        resp_time.tv_sec = resp_time.tv_usec = 0;
+}
+
+int     check_timeout(struct timeval now, struct timeval start, struct timeval elapsed, t_data *data)
+{
+    elapsed.tv_sec = now.tv_sec - start.tv_sec;
+    elapsed.tv_usec = now.tv_usec - start.tv_usec;
+
+    if (elapsed.tv_usec < 0) {
+        elapsed.tv_sec--;
+        elapsed.tv_usec += 1000000;
+    }
+
+    if (elapsed.tv_sec >= data->opts.w) {
+        return 1;
     }
 }

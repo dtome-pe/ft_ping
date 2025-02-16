@@ -58,12 +58,14 @@ typedef struct s_data
 		int				help;
 		int				verbose;
 		int				ttl;
+        int             w;
+
 	} opts;
 
 } t_data;
 
 void            init(t_data *data);
-int				parse_arg(t_data *data, int argc, char **argv);
+void			parse_arg(t_data *data, int argc, char **argv);
 void            generate_headers(t_data *data);
 void            run(t_data *data);
 void            end(t_data *data);
@@ -78,5 +80,8 @@ unsigned short  calculate_checksum(void *data, int length);
 void			handle_rtt(t_data *data, double rtt_ms);
 void			print_headers(struct iphdr *ip_header, struct icmphdr *icmp_header);
 const char 		*get_icmp_message_type(unsigned char type);
+
+void            set_resp_time(struct timeval resp_time, struct timeval last, struct timeval now, t_data *data);
+int             check_timeout(struct timeval now, struct timeval start, struct timeval elapsed, t_data *data);
 
 #endif

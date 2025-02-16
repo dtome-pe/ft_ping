@@ -172,14 +172,17 @@ void    run(t_data *data)
     int             n;
     int             fdmax = data->ping_fd + 1;
     fd_set          fdset;
-    struct timeval  resp_time, last, now;
+    struct timeval  resp_time, last, now, start, elapsed;
 
     memset(&resp_time, 0, sizeof(resp_time));
     memset(&last, 0, sizeof(last));
     memset(&now, 0, sizeof(now));
+    memset(&start, 0, sizeof(start));
+    memset(&elapsed, 0, sizeof(elapsed));
 
     signal (SIGINT, sig_int);
     echo(data);
+    gettimeofday(&start, NULL);
     gettimeofday(&last, NULL);
 
     while (!stop)
@@ -188,22 +191,13 @@ void    run(t_data *data)
         FD_SET(data->ping_fd, &fdset);
         gettimeofday (&now, NULL);
 
-        resp_time.tv_sec = last.tv_sec + data->interval.tv_sec - now.tv_sec;
-        resp_time.tv_usec = last.tv_usec + data->interval.tv_usec - now.tv_usec;
+        if (data->opts.w > 0)
+            if (check_timeout(now, start, elapsed, data) == 1)
+                break;
 
-        while (resp_time.tv_usec < 0)
-        {
-            resp_time.tv_usec += 1000000;
-            resp_time.tv_sec--;
-        }
-        while (resp_time.tv_usec >= 1000000)
-        {
-            resp_time.tv_usec -= 1000000;
-            resp_time.tv_sec++;
-        }
+        set_resp_time(resp_time, last, now, data);
 
-        if (resp_time.tv_sec < 0)
-            resp_time.tv_sec = resp_time.tv_usec = 0;
+
 
         n = select(fdmax, &fdset, NULL, NULL, &resp_time);
         if (n < 0)
