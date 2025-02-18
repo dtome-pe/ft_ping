@@ -142,7 +142,7 @@ void	print_headers(struct iphdr *ip_header, struct icmphdr *icmp_header)
 {
 	ip_header->tot_len = ntohs(ip_header->tot_len);
 
-	printf("IP Hdr Dump:\n");
+	printf("IP Hdr Dump:\n ");
 	unsigned char *header_bytes = (unsigned char *)ip_header;
     for (int i = 0; i < sizeof(struct iphdr); i++)
     {

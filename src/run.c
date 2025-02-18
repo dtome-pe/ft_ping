@@ -118,7 +118,7 @@ int     receive(t_data *data, struct timeval *last)
     if (icmp_header->type == ICMP_TIME_EXCEEDED)
     {
 		data->code = 1;
-        printf("%lu bytes from %s: Time to live exceeded", n - sizeof(*ip_header), inet_ntop(AF_INET, &ip_header->saddr, dest_ip, INET_ADDRSTRLEN));
+        printf("%lu bytes from %s: Time to live exceeded\n", n - sizeof(*ip_header), inet_ntop(AF_INET, &ip_header->saddr, dest_ip, INET_ADDRSTRLEN));
 		if (data->opts.verbose)
 			print_headers(&data->ip_hdr, &data->icmp_hdr);
 		printf("\n");
