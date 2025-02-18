@@ -36,4 +36,8 @@ void end(t_data *data)
 		if (data->stats.packets_received)
 			printf("round-trip min/avg/max/stddev = %.3f/%.3f/%.3f/%.3f ms\n",
 					data->stats.min_rtt, rtt_avg, data->stats.max_rtt, stdev);
+
+        
+        free_rtt(data->stats.rtt_list_head);
+        
 }

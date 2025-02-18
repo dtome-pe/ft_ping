@@ -138,6 +138,21 @@ void	handle_rtt(t_data *data, double rtt_ms)
     data->stats.rtt_count++;
 }
 
+void    free_rtt(struct rtt_node *head)
+{
+    struct rtt_node *current = head;
+    struct rtt_node *next_node;
+
+    while (current != NULL)
+    {
+        next_node = current->next; // Store the next node
+        free(current); // Free current node
+        current = next_node; // Move to the next node
+    }
+
+    head = NULL;
+}
+
 void	print_headers(struct iphdr *ip_header, struct icmphdr *icmp_header)
 {
 	ip_header->tot_len = ntohs(ip_header->tot_len);

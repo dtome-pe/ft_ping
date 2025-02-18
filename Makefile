@@ -1,5 +1,5 @@
 NAME = ft_ping
-SRC = $(addprefix $(DIR_SRC), ft_ping.c headers.c utils.c init.c run.c end.c parse_arg.c)
+SRC = $(addprefix $(DIR_SRC), ft_ping.c headers.c utils.c init.c run.c end.c parse_arg.c echo.c receive.c)
 FLAGS = 
 DEPFLAGS = -MMD -MP
 DIR_OBJ = tmp/

@@ -78,10 +78,14 @@ void			print_missing_host(char *program);
 void			print_usage();
 unsigned short  calculate_checksum(void *data, int length);
 void			handle_rtt(t_data *data, double rtt_ms);
+void            free_rtt(struct rtt_node *head);
 void			print_headers(struct iphdr *ip_header, struct icmphdr *icmp_header);
 const char 		*get_icmp_message_type(unsigned char type);
 
 void            set_resp_time(struct timeval *resp_time, struct timeval last, struct timeval now, t_data *data);
 int             check_timeout(struct timeval now, struct timeval start, struct timeval elapsed, t_data *data);
+
+void            echo(t_data *data);
+int             receive(t_data *data, struct timeval *last);
 
 #endif
